@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Makas Conta Takip</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--tx:#1b1f24;--mu:#66707a;--bd:#d9dde2;--ok:#1f9d55;--okbg:#e3f6ea;--no:#d9480f;--nobg:#fff0e6;--ac:#1c5fd4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171a;--card:#1e2327;--tx:#eceff2;--mu:#98a2ac;--bd:#343b42;--ok:#4cc380;--okbg:#17321f;--no:#ff9a5c;--nobg:#3a2417;--ac:#6ea2ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.w{max-width:640px;margin:0 auto;padding:12px}
+h1{font-size:20px;margin:4px 0 12px;display:flex;justify-content:space-between;align-items:center}
+h1 small{font-size:12px;font-weight:500;color:var(--mu)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+label{display:block;font-size:12px;color:var(--mu);margin:0 0 3px}
+input,select{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:16px}
+.row{display:flex;gap:8px}.row>div{flex:1}
+button{border:0;border-radius:8px;padding:10px 12px;font-size:15px;font-weight:600;background:var(--ac);color:#fff;cursor:pointer}
+button.g{background:transparent;color:var(--ac);border:1px solid var(--bd)}
+.sum{display:flex;gap:8px;margin:10px 0 0}
+.sum div{flex:1;border-radius:8px;padding:8px;text-align:center;font-weight:700}
+.sum small{display:block;font-weight:500;font-size:12px}
+.s1{background:var(--okbg);color:var(--ok)}.s2{background:var(--nobg);color:var(--no)}
+.it{display:flex;align-items:center;gap:8px;border:1px solid var(--bd);border-radius:10px;padding:8px;margin-bottom:8px;border-left:6px solid var(--no)}
+.it.d{border-left-color:var(--ok);background:var(--okbg)}
+.n{font-size:20px;font-weight:800;min-width:44px}
+.it input{padding:7px;font-size:14px}
+.chk{width:34px;height:34px;min-width:34px;border-radius:8px;background:var(--card);border:2px solid var(--bd);color:var(--ok);font-size:20px;padding:0}
+.it.d .chk{background:var(--ok);color:#fff;border-color:var(--ok)}
+.x{width:30px;height:34px;min-width:30px;padding:0;background:transparent;color:var(--no);border:1px solid var(--bd);font-size:16px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools button{flex:1}
+</style>
+</head>
+<body>
+<div id="bar" style="display:none;position:sticky;top:0;z-index:5;background:var(--card);border:2px solid var(--no);border-radius:12px;padding:12px;margin:12px"><div id="bt" style="font-weight:700;margin-bottom:8px"></div><div class="tools"><button id="by">Evet</button><button id="bn" class="g">Vazgeç</button></div></div>
+
+<div class="w">
+
+<div id="login" style="display:none">
+<h1>Makas Conta Takip</h1>
+<div class="card">
+<label>E-posta</label><input id="em" type="email" autocomplete="username">
+<label style="margin-top:8px">Şifre</label><input id="pw" type="password" autocomplete="current-password">
+<button id="gir" style="width:100%;margin-top:12px">Giriş yap</button>
+<div id="lerr" style="color:var(--no);margin-top:8px;font-size:14px"></div>
+</div>
+</div>
+
+<div id="app" style="display:none">
+<h1>Makas Conta Takip <small><span id="dur">Hazır</span> · <a id="cik" href="#" style="color:var(--ac)">Çıkış</a></small></h1>
+
+<div class="card">
+<label>Makas seç</label>
+<select id="sel"></select>
+<div id="info" style="margin:8px 0;font-weight:700"></div>
+<div class="tools">
+<button id="yeni">+ Yeni makas ekle</button>
+<button id="duz" class="g">Düzenle</button>
+<button id="sil" class="g">Sil</button>
+<button id="bos" class="g">Boşları temizle</button>
+</div>
+<div id="form" style="display:none;margin-top:10px;border-top:1px solid var(--bd);padding-top:10px">
+<div class="row">
+<div><label>Çalışma Bölgesi</label><input id="bolge" placeholder="Bölge"></div>
+<div><label>Makas Numarası</label><input id="makas" placeholder="Makas no"></div>
+</div>
+<div class="tools" style="margin-top:8px"><button id="kaydet">Kaydet</button><button id="iptal" class="g">İptal</button></div>
+</div>
+<div class="sum"><div class="s1"><span id="ny">0</span><small>Yapıldı</small></div><div class="s2"><span id="nk">14</span><small>Kaldı</small></div></div>
+<div id="kalan" style="margin-top:8px;font-size:14px;color:var(--mu)"></div>
+</div>
+
+<div id="list"></div>
+
+<div class="tools"><button id="xls" class="g">Excel indir</button></div>
+</div>
+</div>
+
+<script>
+/* ===== BURAYI DOLDUR (Supabase > Project Settings > API) ===== */
+var SUPABASE_URL="https://rxncqcpggphcfnbyxzll.supabase.co";
+var SUPABASE_KEY="sb_publishable_XvLIoJWgJoAfxOb_0OAOrw_SJJyPdtv";
+/* ============================================================== */
+
+var C=["1","2","3","4","5","6","S1","S2","S3","S4","S5","S6","D1","D2"];
+function $(i){return document.getElementById(i)}
+function uid(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){var r=Math.random()*16|0;return(c==="x"?r:(r&3|8)).toString(16)})}
+function today(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+function blank(b,m){var r={id:uid(),bolge:b||"",makas:m||"",c:{}};C.forEach(function(k){r.c[k]={d:0,seri:"",tarih:""}});return r}
+function fromRow(x){var r={id:x.id,bolge:x.bolge,makas:x.makas_no,c:{}};C.forEach(function(k){var e=(x.contas||{})[k]||{};r.c[k]={d:e.d?1:0,seri:e.seri||"",tarih:e.tarih||""}});return r}
+
+var sb=null,db={cur:null,items:{}},mode=null,yesFn=null,timers={};
+function cur(){return db.items[db.cur]}
+function durum(t,hata){var d=$("dur");d.textContent=t;d.style.color=hata?"var(--no)":""}
+
+function ask(msg,fn){yesFn=fn;$("bt").textContent=msg;$("by").textContent="Evet";$("bn").style.display="";$("bar").style.display="block";window.scrollTo(0,0)}
+function note(msg){yesFn=null;$("bt").textContent=msg;$("by").textContent="Tamam";$("bn").style.display="none";$("bar").style.display="block";window.scrollTo(0,0)}
+$("by").onclick=function(){var f=yesFn;yesFn=null;$("bar").style.display="none";if(f)f()};
+$("bn").onclick=function(){yesFn=null;$("bar").style.display="none"};
+
+/* ---- veritabanı ---- */
+function saveRow(id,now){
+  clearTimeout(timers[id]);durum("Kaydediliyor…");
+  timers[id]=setTimeout(function(){
+    var r=db.items[id];if(!r)return;
+    sb.from("makas").upsert({id:r.id,bolge:r.bolge,makas_no:r.makas,contas:r.c,updated_at:new Date().toISOString()})
+      .then(function(res){if(res.error){durum("Kaydedilemedi",1);note("Kayıt hatası: "+res.error.message)}else durum("Kaydedildi")})
+  },now?0:600);
+}
+function delRow(id){
+  sb.from("makas").delete().eq("id",id).then(function(res){if(res.error){durum("Silinemedi",1);note("Silme hatası: "+res.error.message)}else durum("Kaydedildi")})
+}
+function load(){
+  durum("Yükleniyor…");
+  sb.from("makas").select("*").order("updated_at",{ascending:true}).then(function(res){
+    if(res.error){durum("Hata",1);note("Veriler alınamadı: "+res.error.message);return}
+    db.items={};res.data.forEach(function(x){db.items[x.id]=fromRow(x)});
+    db.cur=res.data.length?res.data[res.data.length-1].id:null;
+    durum("Hazır");render();
+    if(!res.data.length)showForm("new");
+  })
+}
+
+/* ---- ekran ---- */
+function showForm(m){mode=m;$("form").style.display="block";
+  if(m==="edit"){$("bolge").value=cur().bolge;$("makas").value=cur().makas}
+  else{$("bolge").value=cur()?cur().bolge:"";$("makas").value=""}
+  $("makas").focus()}
+function hideForm(){mode=null;$("form").style.display="none"}
+function render(){
+  var ks=Object.keys(db.items);
+  if(!ks.length){$("sel").innerHTML="";$("info").textContent="Henüz makas yok. + Yeni makas ekle";$("list").innerHTML="";$("ny").textContent=0;$("nk").textContent=14;$("kalan").textContent="";return}
+  if(!db.cur||!db.items[db.cur])db.cur=ks[ks.length-1];
+  var r=cur(),sel=$("sel");sel.innerHTML="";
+  ks.forEach(function(id){var x=db.items[id],o=document.createElement("option");o.value=id;
+    var y=C.filter(function(k){return x.c[k].d}).length;
+    o.textContent=(x.bolge||"?")+" / "+(x.makas||"?")+" ("+y+"/14)";if(id===db.cur)o.selected=true;sel.appendChild(o)});
+  $("info").textContent="Bölge: "+(r.bolge||"-")+"  |  Makas No: "+(r.makas||"-");
+  var L=$("list");L.innerHTML="";var y=0,kal=[];
+  C.forEach(function(k){
+    var e=r.c[k];if(e.d)y++;else kal.push(k);
+    var d=document.createElement("div");d.className="it"+(e.d?" d":"");
+    d.innerHTML='<div class="n">'+k+'</div><div style="flex:1;min-width:0"><input placeholder="Etiket / Seri No"></div><div style="flex:0 0 125px"><input type="date"></div><button class="chk">'+(e.d?"✓":"")+'</button><button class="x" title="Bu contayı temizle">✕</button>';
+    var ins=d.querySelectorAll("input");ins[0].value=e.seri;ins[1].value=e.tarih;
+    ins[0].oninput=function(){e.seri=this.value;saveRow(r.id)};
+    ins[1].onchange=function(){e.tarih=this.value;saveRow(r.id)};
+    d.querySelector(".chk").onclick=function(){e.d=e.d?0:1;if(e.d&&!e.tarih)e.tarih=today();saveRow(r.id,1);render()};
+    d.querySelector(".x").onclick=function(){ask(k+" contasının kaydı temizlensin mi?",function(){e.d=0;e.seri="";e.tarih="";saveRow(r.id,1);render()})};
+    L.appendChild(d)});
+  $("ny").textContent=y;$("nk").textContent=14-y;
+  $("kalan").textContent=kal.length?"Kalanlar: "+kal.join(", "):"Tüm contalar tamam";
+}
+$("yeni").onclick=function(){showForm("new")};
+$("duz").onclick=function(){if(cur())showForm("edit")};
+$("iptal").onclick=hideForm;
+$("kaydet").onclick=function(){
+  var b=$("bolge").value.trim(),m=$("makas").value.trim();
+  if(!m){note("Makas numarasını yaz");return}
+  var dup=Object.keys(db.items).some(function(id){var x=db.items[id];return x.makas===m&&x.bolge===b&&!(mode==="edit"&&id===db.cur)});
+  if(dup){note("Bu bölge ve makas numarası zaten kayıtlı");return}
+  if(mode==="edit"){cur().bolge=b;cur().makas=m}
+  else{var r=blank(b,m);db.items[r.id]=r;db.cur=r.id}
+  saveRow(db.cur,1);hideForm();render()};
+$("bos").onclick=function(){
+  var ids=Object.keys(db.items).filter(function(id){var x=db.items[id];
+    return !x.makas&&C.every(function(k){var e=x.c[k];return !e.d&&!e.seri&&!e.tarih})});
+  if(!ids.length){note("Boş makas kaydı yok");return}
+  ask(ids.length+" boş makas kaydı silinsin mi?",function(){ids.forEach(function(id){delete db.items[id];delRow(id)});db.cur=null;hideForm();render()})};
+$("sel").onchange=function(){db.cur=this.value;hideForm();render()};
+$("sil").onclick=function(){if(!cur())return;var id=db.cur;ask("Bu makas kaydı tamamen silinsin mi?",function(){delete db.items[id];delRow(id);db.cur=null;hideForm();render()})};
+$("xls").onclick=function(){
+  function q(t){return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+  var h='<meta charset="utf-8"><table border="1"><tr><th>Çalışma Bölgesi</th><th>Makas No</th><th>Conta No</th><th>Durum</th><th>Etiket / Seri No</th><th>Kaynak Tarihi</th></tr>';
+  Object.keys(db.items).forEach(function(id){var x=db.items[id];C.forEach(function(k){var e=x.c[k];
+    h+="<tr><td>"+q(x.bolge)+"</td><td>"+q(x.makas)+"</td><td>"+k+"</td><td>"+(e.d?"Yapıldı":"Kaldı")+"</td><td>"+q(e.seri)+"</td><td>"+e.tarih+"</td></tr>"})});
+  h+="</table>";
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([h],{type:"application/vnd.ms-excel"}));
+  a.download="makas-conta-takip.xls";document.body.appendChild(a);a.click();a.remove()};
+
+/* ---- giriş ---- */
+function girisGoster(){$("login").style.display="block";$("app").style.display="none"}
+function appGoster(){$("login").style.display="none";$("app").style.display="block";load()}
+$("gir").onclick=function(){
+  $("lerr").textContent="";
+  sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value}).then(function(res){
+    if(res.error)$("lerr").textContent="Giriş başarısız: e-posta veya şifre hatalı";else appGoster()})};
+$("cik").onclick=function(e){e.preventDefault();sb.auth.signOut().then(function(){db={cur:null,items:{}};girisGoster()})};
+
+if(!SUPABASE_URL||!SUPABASE_KEY||!window.supabase){
+  girisGoster();$("lerr").textContent=window.supabase?"Dosyanın başındaki SUPABASE_URL ve SUPABASE_KEY alanlarını doldur.":"Bağlantı kütüphanesi yüklenemedi, internet bağlantını kontrol et.";
+}else{
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  sb.auth.getSession().then(function(r){if(r.data&&r.data.session)appGoster();else girisGoster()});
+}
+</script>
+</body>
+</html>
